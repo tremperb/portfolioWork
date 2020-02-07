@@ -1,2 +1,2 @@
-# portfolioWork
-This folder holds links to previous coding assignments
+# Portfolio Work
+This github folder holds various works of code from past assignments, individual, and team work.
