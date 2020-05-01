@@ -1,0 +1,21 @@
+{{> loginHeader}}
+
+<section class="new-container">
+      <div class="name-container">
+        <h2 class="my-name"><u><em>Create An Account</em></u></h2>
+        <div class="info-container">
+          <h4> Please Enter a username and password to create an account.</h4>
+          <form id="get-login" action="/createAccount" method="POST">
+            <div class="participant-container">
+              <label for="userName">Username: </label><input type="text" id="userName" name="usernameInput"><br><br>
+              <label for="password">Password: </label><input type="text" id="password" name="passwordInput"><br><br>
+            </div>
+
+            <br> <br> <input type="submit" value="Create Account"  class="button"> <br> <br>
+          </form>
+        </div>
+
+      </div>
+
+
+</section>

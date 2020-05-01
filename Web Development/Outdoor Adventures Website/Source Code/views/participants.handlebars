@@ -1,0 +1,40 @@
+{{> header}}
+
+<main class="content">
+
+  <section class="new-container">
+    <div class="name-container">
+      <h1 class="my-name"><u><em>Participants</em></u></h1>
+      <h4> <em> For exact info about this page see "Participants" on the homepage. </em> </h4>
+      <div class="info-container">
+        <h4>Enter the tripID to find participants for that trip</h4>
+        <label for="part">tripID: </label><input type="number" id="find-participants" value="1">
+        <input type="submit" value="Submit" onclick="return filterParticipants()"><br><br>
+         <br> <br>
+        <h2>All Participants</h2>
+
+        <div class="entity-table">
+          <table style="width:100%">
+            <thead>
+              <th>tripID</th>
+              <th><u>participantID</u></th>
+              <th>firstName</th>
+              <th>lastName</th>
+              <th>Cancel Trip?</th>
+            </thead>
+            {{#each participants}}
+            <tr>
+              <td>{{this.tripID}}</td>
+              <td>{{this.participantID}}</td>
+              <td>{{this.firstName}}</td>
+              <td>{{this.lastName}}</td>
+              <td><button id='delete-participant' onclick="deleteParticipant({{this.tripID}}, {{this.participantID}})">Cancel</button></td>
+            </tr>
+            {{/each}}
+          </table>
+        </div> <br> <br>
+      </div>
+    </div>
+  </section>
+
+</main>

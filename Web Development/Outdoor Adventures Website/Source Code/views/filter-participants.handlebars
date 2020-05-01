@@ -1,0 +1,38 @@
+{{> header}}
+
+<main class="content">
+
+  <section class="new-container">
+    <div class="name-container">
+      <h1 class="my-name"><u><em>Participants</em></u></h1>
+
+      <div class="info-container">
+         <br> <br>
+        <h2>Participants In Trip {{this.tid}}</h2>
+
+        <div class="entity-table">
+          <table style="width:100%">
+            <thead>
+              <th>tripID</th>
+              <th><u>participantID</u></th>
+              <th>firstName</th>
+              <th>lastName</th>
+              <th>Cancel Trip?</th>
+            </thead>
+            {{#each participants}}
+            <tr>
+              <td>{{this.tripID}}</td>
+              <td>{{this.participantID}}</td>
+              <td>{{this.firstName}}</td>
+              <td>{{this.lastName}}</td>
+              <td><button id='delete-participant' onclick="deleteParticipant({{this.tripID}}, {{this.participantID}})">Cancel</button></td>
+            </tr>
+            {{/each}}
+          </table>
+        </div> <br> <br>
+        <p><small>Note: If no participants appeared either no one has yet to sign up or the tripID entered doesn't exist.</small><p>
+      </div>
+    </div>
+  </section>
+
+</main>

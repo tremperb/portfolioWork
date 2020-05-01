@@ -1,0 +1,43 @@
+{{> header}}
+
+<main class="content">
+
+  <section class="new-container">
+    <div class="name-container">
+      <h2 class="my-name"><u><em>Read-It</em></u></h2>
+
+      <h3>Your Input</h3>
+      <div class="container-main-input" id="container-main-input" style="background-color: white;">
+
+        <textarea readonly placeholder="Please enter your input here..."class="input-text" id = "input-text" name="message" rows="20">{{this.inputText}}</textarea>
+        {{#each MenuInfo}}
+        <h3>Selected Highlights</h3>
+        <label for="highlightOne">1: </label><input readonly type="text" class="highlight" id="highlightOne" value="{{this.highlightOne}}"><br><br>
+        <label for="highlightTwo">2: </label><input readonly type="text" class="highlight" id="highlightTwo" value="{{this.highlightTwo}}"><br><br>
+        <label for="highlightThree">3: </label><input readonly type="text" class="highlight" id="highlightThree" value="{{this.highlightThree}}"><br><br>
+
+        <h3>Selected Blocking</h3>
+        <label for="blockOne">1: </label><input readonly type="text" id="blockOne" value="{{this.blockOne}}"><br><br>
+        <label for="blockTwo">2: </label><input readonly type="text" id="blockTwo" value="{{this.blockTwo}}"><br><br>
+        <label for="blockThree">3: </label><input readonly type="text" id="blockThree" value="{{this.blockThree}}"><br><br>
+
+        <h3>Selected Font</h4>
+          <label for="fontOne">1: </label><input readonly type="text" id="fontOne" value="{{this.newFont}}"><br><br>
+        {{/each}}
+      </div>
+      <h3>Your Output</h3>
+      <div class="container-main-input" style="background-color: white;">
+      <form>
+        <p class="output-text" id="output-text" name="message" style="text-align: left;"> 
+          {{this.inputText}}
+        </p>
+        <div class="my-name">
+                <input type="button" value="Play Audio" onclick="say()"/>
+        </div>
+      </form>
+      </div>
+
+    </div>
+  </section>
+
+</main>

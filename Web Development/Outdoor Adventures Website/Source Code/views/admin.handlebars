@@ -1,0 +1,63 @@
+{{> header}}
+
+<main class="content">
+
+  <section class="new-container">
+    <div class="name-container">
+      <h1 class="my-name"><u><em>Admin</em></u></h1>
+      <h4> <em> For exact info about this page see "Admin" on the homepage. </em> </h4>
+      <div class="info-container">
+        <form id="add-trip" action="/admin" method="POST">
+          <h2>Add a new Trip</h2>
+
+            <div class="entity-table">
+              <table style="width:100%">
+                <tr>
+                  <th>tripType</th>
+                  <th>distanceTraveled (miles)</th>
+                  <th>experienceLevel</th>
+                  <th>tripLength (days)</th>
+
+                </tr>
+                <tr>
+                  <td><input type="text" id="trip-type" name="tripTypeInput"></td>
+                  <td><input type="number" id="distance" name="distanceInput"></td>
+                  <td><input type="text" id="level" name="levelInput"></td>
+                  <td><input type="number" id="length" name="tripLengthInput"></td>
+                </tr>
+              </table>
+            </div>
+            <br><br>
+            <div class="entity-table">
+              <table style="width:100%">
+                <tr>
+                  <th>destination</th>
+                  <th>maxAltitude</th>
+                  <th>anticipatedAvgTemperature</th>
+                  <th>anticipatedSkyCondition</th>
+                </tr>
+                <tr>
+                  <td><input type="text" id="destination" name="destinationInput"></td>
+                  <td><input type="number" id="altitude" name="altitudeInput"></td>
+                  <td><input type="number" id="avg-temp" name="temperatureInput"></td>
+                  <td><input type="text" id="sky-condition" name="skyInput"></td>
+                </tr>
+              </table>
+            </div>
+            <br> <br> <input type="submit" value="Submit"> <br> <br>
+
+        </form><br>
+
+        <form>
+          <h2>Adjust a current trip</h2>
+          <label for="find-trip">Enter the tripID: </label><input type="number" name="trip" id="find-trip" value="1"><br><br>
+
+            <br> <input type="submit" value="Proceed" onclick="return filterTripsUpdate()"> <br> <br>
+
+        </form><br>
+
+      </div>
+    </div>
+  </section>
+
+</main>

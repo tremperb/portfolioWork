@@ -1,0 +1,42 @@
+{{> header}}
+
+<main class="content">
+
+  <section class="new-container">
+    <div class="name-container">
+      <h1 class="my-name"><u><em>Outdoor Adventures</em></u></h1>
+      <h2> <em> Welcome! </em> </h2>
+      <div class="info-container">
+        <p> <h3> Home </h3>
+          This is the landing page for the website in which users can interact with.
+          They can go the the corresponding tabs as described below.
+        </p> <br> <br>
+        <p> <h3> Book A Trip </h3>
+          This is where the user can book a trip. This utilizes the INSERT query in
+          which the user can insert their information for a trip that they would like to take. This also applies a
+          NULLABLE relationship for packing list where the user can decide to make a packing list for that trip or
+          they can opt not to.
+        </p> <br> <br>
+        <p> <h3> Trip Info </h3>
+          This is where the user can view information about each trip.
+          This utilizes the SELECT query in which the user can see the available trips, the location information
+          for each trip and the packing lists that people have filled out if applicable to get a better idea what to bring or the
+          person who made the list can use it to double check what they are bringing.
+        </p> <br> <br>
+        <p> <h3> Participants </h3>
+          This is where the user can view information about the participants attending each trip.
+          This utilizes a SELECT query with an implemented search filter. Also, this implements a
+          DELETE query if the participant wishes to cancel that trip on the premise that the tripID
+          and participantID match considering they have a M:M relationship, it will delete the trip
+          and their corresponding packing list if they have created one.
+        </p> <br> <br>
+        <p> <h3> Admin </h3>
+          This page is meant for administration where they have the ability to add new trips.
+          As well as the ability to UPDATE the current information on a trip if any changes are needed
+          which utilizes a filter as well as a select so they are aware f which trips they are editing and what the values were previously.
+        </p> <br> <br>
+      </div>
+    </div>
+  </section>
+
+</main>

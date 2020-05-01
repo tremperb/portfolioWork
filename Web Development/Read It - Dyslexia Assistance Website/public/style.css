@@ -1,0 +1,130 @@
+@font-face { font-family: open-dyslexic; src: url('/OpenDyslexic-Regular.otf'); }
+@font-face { font-family: comic-sans; src: url('/comici.ttf'); }
+
+
+body {
+  font-family: 'open-dyslexic';
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: #f67811;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+header {
+  background-color: white;
+  text-align: center;
+}
+
+header img {
+  height: 200px;
+  width: 200px;
+  margin: 10px;
+}
+
+.nav-bar-container {
+  text-align: center;
+}
+
+.select-container {
+  display: inline-block;
+  align-self: center;
+  margin-top: 0px;
+  width: auto;
+  text-align: center;
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+  padding: 10px;
+  background-color: white;
+}
+
+#page-select-option {
+  padding: 50px;
+  color: black;
+}
+
+.new-container {
+  text-align: center;
+}
+
+.name-container {
+  display: inline-block;
+  margin: 40px;
+  text-align: center;
+  box-shadow: 4px 4px 8px;
+  width: 80%;
+}
+
+.my-name {
+  font-size: 50px;
+}
+
+.info-container {
+
+  display: inline-block;
+  margin: 10px;
+  text-align: center;
+}
+
+table, th, td {
+  border: 1px solid black;
+  padding: 3px;
+}
+
+.container-main-input {
+  display: inline-block;
+  margin: 40px;
+  text-align: center;
+  box-shadow: 4px 4px 8px;
+  width: 80%;
+  padding: 10px;
+}
+
+.container-main-input .input-text{
+  resize: none;
+  outline: none;
+  width: 95%;
+  padding: 10px;
+  border: none;
+  height: 100%;
+  margin-left: -10px;
+  margin-right: -10px;
+  margin-top: 5px;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+}
+
+.container-main-input .output-text{
+  resize: none;
+  outline: none;
+  width: 95%;
+  padding: 10px;
+  border: none;
+  height: 100%;
+  margin-left: -10px;
+  margin-right: -10px;
+  margin-top: 5px;
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+}
+
+.button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+.button:hover {
+  background-color: green;
+}

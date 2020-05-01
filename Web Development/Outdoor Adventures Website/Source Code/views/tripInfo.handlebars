@@ -1,0 +1,86 @@
+{{> header}}
+
+<main class="content">
+
+  <section class="new-container">
+    <div class="name-container">
+      <h2 class="my-name"><u><em>Trip Information</em></u></h2>
+      <h4> <em> For exact info about this page see "Trip Info" on the homepage. </em> </h4>
+
+      <div class="info-container">
+        <h2> Trip </h2>
+        <div class="entity-table">
+          <table style="width:100%">
+            <thead>
+              <th><u>tripID</u></th>
+              <th>tripType</th>
+              <th>distanceTraveled (miles)</th>
+              <th>experienceLevel</th>
+              <th>tripLength (days)</th>
+            </thead>
+            {{#each trip}}
+            <tr>
+              <td>{{tripID}}</td>
+              <td>{{tripType}}</td>
+              <td>{{distanceTraveled}}</td>
+              <td>{{experienceLevel}}</td>
+              <td>{{tripLength}}</td>
+            </tr>
+            {{/each}}
+          </table>
+        </div>
+
+        <h2> Location </h2>
+        <div class="entity-table">
+          <table style="width:100%">
+            <thead>
+              <th><u>destId</u></th>
+              <th>tripID</th>
+              <th>destination</th>
+              <th>maxAltitude</th>
+              <th>anticipatedAvgTemperature</th>
+              <th>anticipatedSkyCondition</th>
+            </thead>
+            {{#each location}}
+            <tr>
+              <td>{{destID}}</td>
+              <td>{{tripID}}</td>
+              <td>{{destination}}</td>
+              <td>{{maxAltitude}}</td>
+              <td>{{anticipatedAvgTemperature}}</td>
+              <td>{{anticipatedSkyCondition}}</td>
+            </tr>
+            {{/each}}
+          </table>
+        </div>
+
+        <h2> Packing List </h2>
+        <div class="entity-table">
+          <table style="width:100%">
+            <thead>
+              <th><u>listId</u></th>
+              <th>participantId</th>
+              <th>tripID</th>
+              <th>tripEquipment</th>
+              <th>clothing</th>
+              <th>waterAmount(gallons)</th>
+              <th>foodMealsAmount</th>
+            </thead>
+            {{#each packingLists}}
+            <tr>
+              <td>{{listID}}</td>
+              <td>{{participantID}}</td>
+              <td>{{tripID}}</td>
+              <td>{{tripEquipment}}</td>
+              <td>{{clothing}}</td>
+              <td>{{waterAmount}}</td>
+              <td>{{foodMealsAmount}}</td>
+            </tr>
+            {{/each}}
+          </table>
+        </div>
+      </div><br><br>
+    </div>
+  </section>
+
+</main>
