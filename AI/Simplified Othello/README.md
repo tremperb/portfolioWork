@@ -1,6 +1,17 @@
 # Othello 4x4 Game (C++)
 
-This project is finished but will not yet be released as 
-it is an active assignment.
+Compiling instructions:
 
-Upon reaching the assignment due date all source code will be added
+make
+
+./othello <player1> <player2>
+
+Where the players can be recognized as:
+
+./othello human human
+
+./othello human minimax
+
+./othello minimax human
+
+./othello minimax minimax 
