@@ -1,0 +1,2414 @@
+﻿#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#define _USE_MATH_DEFINES
+#include <math.h>
+
+#ifdef WIN32
+#include <windows.h>
+#pragma warning(disable:4996)
+#endif
+
+#include "glew.h"
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include "glut.h"
+#include "heli.550"
+
+
+//	This is a sample OpenGL / GLUT program
+//
+//	The objective is to draw a 3d object and change the color of the axes
+//		with a glut menu
+//
+//	The left mouse button does rotation
+//	The middle mouse button does scaling
+//	The user interface allows:
+//		1. The axes to be turned on and off
+//		2. The color of the axes to be changed
+//		3. Debugging to be turned on and off
+//		4. Depth cueing to be turned on and off
+//		5. The projection to be changed
+//		6. The transformations to be reset
+//		7. The program to quit
+//
+//	Author:			Joe Graphics
+
+// NOTE: There are a lot of good reasons to use const variables instead
+// of #define's.  However, Visual C++ does not allow a const variable
+// to be used as an array size or as the case in a switch( ) statement.  So in
+// the following, all constants are const variables except those which need to
+// be array sizes or cases in switch( ) statements.  Those are #defines.
+
+// title of these windows:
+
+const char* WINDOWTITLE = { "Project 4 -- Lighting -- Brayden Tremper (Sample code by Joe Graphics)" };
+const char* GLUITITLE = { "User Interface Window" };
+
+// what the glui package defines as true and false:
+
+const int GLUITRUE = { true };
+const int GLUIFALSE = { false };
+
+// the escape key:
+
+#define ESCAPE		0x1b
+
+// initial window size:
+
+const int INIT_WINDOW_SIZE = { 600 };
+
+// size of the 3d box:
+
+const float BOXSIZE = { 2.f };
+
+const float pi = { 3.14159265359f };
+
+// multiplication factors for input interaction:
+//  (these are known from previous experience)
+
+const float ANGFACT = { 1. };
+const float SCLFACT = { 0.005f };
+
+// minimum allowable scale factor:
+
+const float MINSCALE = { 0.05f };
+
+// scroll wheel button values:
+
+const int SCROLL_WHEEL_UP = { 3 };
+const int SCROLL_WHEEL_DOWN = { 4 };
+
+// equivalent mouse movement when we click a the scroll wheel:
+
+const float SCROLL_WHEEL_CLICK_FACTOR = { 5. };
+
+// active mouse buttons (or them together):
+
+const int LEFT = { 4 };
+const int MIDDLE = { 2 };
+const int RIGHT = { 1 };
+
+// which projection:
+
+enum Projections
+{
+	ORTHO,
+	PERSP
+};
+
+enum Views
+{
+	SOLARSYSTEM,
+	MERCURY,
+	VENUS,
+	EARTH,
+	MARS,
+	JUPITER,
+	SATURN,
+	URANUS,
+	NEPTUNE
+
+};
+
+enum Textures
+{
+	STANDARDT,
+	TEXTURET,
+	DISTORTT
+};
+
+// which button:
+
+enum ButtonVals
+{
+	RESET,
+	QUIT
+};
+
+// window background color (rgba):
+
+const GLfloat BACKCOLOR[] = { 0., 0., 0., 1. };
+
+// line width for the axes:
+
+const GLfloat AXES_WIDTH = { 3. };
+
+// the color numbers:
+// this order must match the radio button order
+
+enum Colors
+{
+	RED,
+	YELLOW,
+	GREEN,
+	CYAN,
+	BLUE,
+	MAGENTA,
+	WHITE,
+	BLACK
+};
+
+char* ColorNames[] =
+{
+	"Red",
+	"Yellow",
+	"Green",
+	"Cyan",
+	"Blue",
+	"Magenta",
+	"White",
+	"Black"
+};
+
+// the color definitions:
+// this order must match the menu order
+
+const GLfloat Colors[][3] =
+{
+	{ 1., 0., 0. },		// red
+	{ 1., 1., 0. },		// yellow
+	{ 0., 1., 0. },		// green
+	{ 0., 1., 1. },		// cyan
+	{ 0., 0., 1. },		// blue
+	{ 1., 0., 1. },		// magenta
+	{ 1., 1., 1. },		// white
+	{ 0., 0., 0. },		// black
+};
+
+// fog parameters:
+
+const GLfloat FOGCOLOR[4] = { .0, .0, .0, 1. };
+const GLenum  FOGMODE = { GL_LINEAR };
+const GLfloat FOGDENSITY = { 0.30f };
+const GLfloat FOGSTART = { 1.5 };
+const GLfloat FOGEND = { 4. };
+
+
+// what options should we compile-in?
+// in general, you don't need to worry about these
+// i compile these in to show class examples of things going wrong
+
+//#define DEMO_Z_FIGHTING
+//#define DEMO_DEPTH_BUFFER
+
+// should we turn the shadows on?
+
+//#define ENABLE_SHADOWS
+
+
+
+// non-constant global variables:
+
+int		ActiveButton;			// current button that is down
+GLuint	AxesList;				// list to hold the axes
+int		AxesOn;					// != 0 means to draw the axes
+int		DebugOn;				// != 0 means to print debugging info
+int		DepthCueOn;				// != 0 means to use intensity depth cueing
+int		DepthBufferOn;			// != 0 means to use the z-buffer
+int		DepthFightingOn;		// != 0 means to force the creation of z-fighting
+GLuint	BoxList;				// object display list
+GLuint	planetList;
+int		MainWindow;				// window id for main graphics window
+float	Scale;					// scaling factor
+int		ShadowsOn;				// != 0 means to turn shadows on
+int		WhichColor;				// index into Colors[ ]
+int		WhichProjection;		// ORTHO or PERSP
+int		Xmouse, Ymouse;			// mouse values
+float	Xrot, Yrot;				// rotation angles in degrees
+
+// Variables for helicopter
+GLuint	heliBodyList;
+GLuint	saturnRingList;
+int		WhichView;				// INSIDE or OUTSIDE
+INT		WhichTexture;
+GLuint	bladesList;				// For the 2 heli blades
+float	Time;
+bool	Frozen;
+unsigned char* texture;
+unsigned char* textureSun;
+unsigned char* textureMercury;
+unsigned char* textureVenus;
+unsigned char* textureEarth;
+unsigned char* textureMars;
+unsigned char* textureJupiter;
+unsigned char* textureSaturn;
+unsigned char* textureUranus;
+unsigned char* textureNeptune;
+unsigned char* textureStars;
+
+int		textureWidth;
+int		textureHeight;
+// Blade parameters
+#define BLADE_RADIUS	1.0
+#define BLADE_WIDTH		0.4
+bool	light1On;
+bool	light2On;
+bool	light3On;
+float	White[] = { 1.,1.,1.,1. };
+GLuint	texSun, texMercury, texVenus, texEarth, texMars, texJupiter, texSaturn, texUranus, teexNeptune;
+// function prototypes:
+float* Array3(float a, float b, float c);
+float* MulArray3(float factor, float array0[3]);
+void	SetPointLight(int ilight, float x, float y, float z, float r, float g, float b);
+void	SetSpotLight(int ilight, float x, float y, float z, float xdir, float ydir, float zdir, float r, float g, float b);
+void	SetMaterial(float r, float g, float b, float shininess);
+void	drawCylinder(float radius, float height, float startHeight, bool bottomCircle, bool lowerGrip, bool button, float red, float blue, float green);
+void	Animate();
+void	Display();
+void	DoAxesMenu(int);
+void	DoColorMenu(int);
+void	DoDepthBufferMenu(int);
+void	DoDepthFightingMenu(int);
+void	DoDepthMenu(int);
+void	DoDebugMenu(int);
+void	DoMainMenu(int);
+void	DoProjectMenu(int);
+void	DoViewMenu(int);
+void	DoTextureMenu(int);
+
+void	DoShadowMenu();
+void	DoRasterString(float, float, float, char*);
+void	DoStrokeString(float, float, float, float, char*);
+float	ElapsedSeconds();
+void	InitGraphics();
+void	InitLists();
+void	InitMenus();
+void	Keyboard(unsigned char, int, int);
+void	MouseButton(int, int, int, int);
+void	MouseMotion(int, int);
+void	Reset();
+void	Resize(int, int);
+void	Visibility(int);
+void	InitTextures(int);
+void			Axes(float);
+unsigned char* BmpToTexture(char*, int*, int*);
+void			HsvRgb(float[3], float[3]);
+int				ReadInt(FILE*);
+short			ReadShort(FILE*);
+
+void			Cross(float[3], float[3], float[3]);
+float			Dot(float[3], float[3]);
+float			Unit(float[3], float[3]);
+
+
+// main program:
+
+int
+main(int argc, char* argv[])
+{
+	// turn on the glut package:
+	// (do this before checking argc and argv since it might
+	// pull some command line arguments out)
+
+	glutInit(&argc, argv);
+
+	// setup all the graphics stuff:
+
+	InitGraphics();
+	
+
+	// create the display structures that will not change:
+
+	InitLists();
+
+	// init all the global variables used by Display( ):
+	// this will also post a redisplay
+
+	Reset();
+
+	// setup all the user interface stuff:
+
+	InitMenus();
+
+	// draw the scene once and wait for some interaction:
+	// (this will never return)
+
+	glutSetWindow(MainWindow);
+	glutMainLoop();
+
+	// glutMainLoop( ) never returns
+	// this line is here to make the compiler happy:
+
+	return 0;
+}
+
+
+// this is where one would put code that is to be called
+// everytime the glut main loop has nothing to do
+//
+// this is typically where animation parameters are set
+//
+// do not call Display( ) from here -- let glutMainLoop( ) do it
+
+void
+Animate()
+{
+	// put animation stuff in here -- change some global variables
+	// for Display( ) to find:
+#define MS_IN_THE_ANIMATION_CYCLE	100000
+//. . .
+	int ms = glutGet(GLUT_ELAPSED_TIME);	// milliseconds
+	ms %= MS_IN_THE_ANIMATION_CYCLE;
+
+	Time = (float)ms / (float)MS_IN_THE_ANIMATION_CYCLE;        // [ 0., 1. )
+
+	// force a call to Display( ) next time it is convenient:
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+//Start Sphere Code for assignment 3
+struct points {
+	float x, y, z;		// coordinates
+	float nx, ny, nz;	// surface normal
+	float s, t;		// texture coords
+};
+
+static int		NumLngs, NumLats;
+static struct points* Pts;
+
+inline struct points*
+PtsPointer(int lat, int lng)
+{
+	if (lat < 0)	lat += (NumLats - 1);
+	if (lng < 0)	lng += (NumLngs - 1);
+	if (lat > NumLats - 1)	lat -= (NumLats - 1);
+	if (lng > NumLngs - 1)	lng -= (NumLngs - 1);
+	return &Pts[NumLngs * lat + lng];
+}
+
+
+
+inline void
+DrawPoint(struct points* p)
+{
+	glNormal3f(p->nx, p->ny, p->nz);
+	glTexCoord2f(p->s, p->t);
+	glVertex3f(p->x, p->y, p->z);
+}
+
+void
+OsuSphere(float radius, int slices, int stacks)
+{
+	struct points top, bot;		// top, bottom points
+	struct points* p;
+
+	// set the globals:
+
+	NumLngs = slices;
+	NumLats = stacks;
+
+	if (NumLngs < 3)
+		NumLngs = 3;
+
+	if (NumLats < 3)
+		NumLats = 3;
+
+
+	// allocate the point data structure:
+
+	Pts = new struct points[NumLngs * NumLats];
+
+
+	// fill the Pts structure:
+
+	for (int ilat = 0; ilat < NumLats; ilat++)
+	{
+		float lat = -M_PI / 2. + M_PI * (float)ilat / (float)(NumLats - 1);
+		float xz = cos(lat);
+		float y = sin(lat);
+		for (int ilng = 0; ilng < NumLngs; ilng++)
+		{
+			float lng = -M_PI + 2. * M_PI * (float)ilng / (float)(NumLngs - 1);
+			float x = xz * cos(lng);
+			float z = -xz * sin(lng);
+			p = PtsPointer(ilat, ilng);
+			p->x = radius * x;
+			p->y = radius * y;
+			p->z = radius * z;
+			p->nx = x;
+			p->ny = y;
+			p->nz = z;
+			if (WhichTexture == DISTORTT) {
+				p->s = ((lng + M_PI + sinf(2 * (Time + (float)ilat / (float)NumLats))) / (2. * M_PI)) + sin(Time);
+				p->t = ((lat + M_PI + cosf(2 * (Time + (float)ilng / (float)NumLngs))) / 2.) / M_PI + cos(Time);
+
+
+			}
+			else {
+				p->s = (lng + M_PI) / (2. * M_PI);
+				p->t = (lat + M_PI / 2.) / M_PI;
+			}
+
+
+		}
+	}
+
+	top.x = 0.;		top.y = radius;	top.z = 0.;
+	top.nx = 0.;		top.ny = 1.;		top.nz = 0.;
+	top.s = 0.;		top.t = 1.;
+
+	bot.x = 0.;		bot.y = -radius;	bot.z = 0.;
+	bot.nx = 0.;		bot.ny = -1.;		bot.nz = 0.;
+	bot.s = 0.;		bot.t = 0.;
+
+
+	// connect the north pole to the latitude NumLats-2:
+
+	glBegin(GL_QUADS);
+	for (int ilng = 0; ilng < NumLngs - 1; ilng++)
+	{
+		p = PtsPointer(NumLats - 1, ilng);
+		DrawPoint(p);
+
+		p = PtsPointer(NumLats - 2, ilng);
+		DrawPoint(p);
+
+		p = PtsPointer(NumLats - 2, ilng + 1);
+		DrawPoint(p);
+
+		p = PtsPointer(NumLats - 1, ilng + 1);
+		DrawPoint(p);
+	}
+	glEnd();
+
+	// connect the south pole to the latitude 1:
+
+	glBegin(GL_QUADS);
+	for (int ilng = 0; ilng < NumLngs - 1; ilng++)
+	{
+		p = PtsPointer(0, ilng);
+		DrawPoint(p);
+
+		p = PtsPointer(0, ilng + 1);
+		DrawPoint(p);
+
+		p = PtsPointer(1, ilng + 1);
+		DrawPoint(p);
+
+		p = PtsPointer(1, ilng);
+		DrawPoint(p);
+	}
+	glEnd();
+
+
+	// connect the other 4-sided polygons:
+
+	glBegin(GL_QUADS);
+	for (int ilat = 2; ilat < NumLats - 1; ilat++)
+	{
+		for (int ilng = 0; ilng < NumLngs - 1; ilng++)
+		{
+			p = PtsPointer(ilat - 1, ilng);
+			DrawPoint(p);
+
+			p = PtsPointer(ilat - 1, ilng + 1);
+			DrawPoint(p);
+
+			p = PtsPointer(ilat, ilng + 1);
+			DrawPoint(p);
+
+			p = PtsPointer(ilat, ilng);
+			DrawPoint(p);
+		}
+	}
+	glEnd();
+
+	delete[] Pts;
+	Pts = NULL;
+}
+// draw the complete scene:
+
+void
+Display()
+{
+	if (DebugOn != 0)
+	{
+		fprintf(stderr, "Display\n");
+	}
+
+
+	// set which window we want to do the graphics into:
+
+	glutSetWindow(MainWindow);
+
+
+	// erase the background:
+
+	glDrawBuffer(GL_BACK);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glEnable(GL_DEPTH_TEST);
+#ifdef DEMO_DEPTH_BUFFER
+	if (DepthBufferOn == 0)
+		glDisable(GL_DEPTH_TEST);
+#endif
+
+
+	// specify shading to be flat:
+
+	glShadeModel(GL_FLAT);
+
+
+	// set the viewport to a square centered in the window:
+
+	GLsizei vx = glutGet(GLUT_WINDOW_WIDTH);
+	GLsizei vy = glutGet(GLUT_WINDOW_HEIGHT);
+	GLsizei v = vx < vy ? vx : vy;			// minimum dimension
+	GLint xl = (vx - v) / 2;
+	GLint yb = (vy - v) / 2;
+	glViewport(xl, yb, v, v);
+
+
+	// set the viewing volume:
+	// remember that the Z clipping  values are actually
+	// given as DISTANCES IN FRONT OF THE EYE
+	// USE gluOrtho2D( ) IF YOU ARE DOING 2D !
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	if (WhichProjection == ORTHO)
+		glOrtho(-3., 3., -3., 3., 0.1, 1000.);
+	else
+		gluPerspective(90., 1., 0.1, 1000.);
+
+
+	// place the objects into the scene:
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	char* textPlanet;
+	// These look at are the ones i liked the best
+	// eye position, lookat position, and up-vector
+	if (WhichView == MERCURY) {	
+		// Mercury View
+		textPlanet = "Planet: Mercury";
+		gluLookAt(39., 0., 0, 0., 0., 0., 0., 1., -0.25);
+	}
+	else if (WhichView == VENUS) {
+		textPlanet = "Planet: Venus";
+		gluLookAt(43.5, 0., 0, 0., 0., 0., 0., 1., -0.25);
+	}
+	else if (WhichView == EARTH) {
+		textPlanet = "Planet: Earth";
+		gluLookAt(46.5, 0., 0, 0., 0., 0., 0., 1., -0.25);
+	}
+	else if (WhichView == MARS) {
+		textPlanet = "Planet: Mars";
+		// Mars View
+		gluLookAt(50.5, 0., 0, 0., 0., 0., 0., 1., -0.25);
+	}
+	else if (WhichView == JUPITER) {
+		textPlanet = "Planet: Jupiter";
+		// Jupiter View
+		gluLookAt(115, 0., 0, 0., 0., 0., 0., 1., -0.25);
+	}
+	else if (WhichView == SATURN) {
+		textPlanet = "Planet: Saturn";
+		// Saturn View
+		gluLookAt(170, 8., 0, 0., 0., 0., 0., 1., -0.25);
+	}
+	else if (WhichView == URANUS) {
+		textPlanet = "Planet: Uranus";
+		// UranusView
+		gluLookAt(240, 2., 0, 0., 0., 0., 0., 1., -0.25);
+	}
+	else if (WhichView == NEPTUNE) {
+		textPlanet = "Planet: Neptune";
+		// NeptuneView
+		gluLookAt(350, 2., 0, 0., 0., 0., 0., 1., -0.25);
+	}
+	else {
+		gluLookAt(390., 150., 250., 0., 0, 0., 0., 1., -0.25);
+		textPlanet = "Solar System by Brayden Tremper";
+	}
+	
+	
+
+
+
+	// rotate the scene only in outside view:
+
+	glRotatef((GLfloat)Yrot, 0., 1., 0.);
+	glRotatef((GLfloat)Xrot, 1., 0., 0.);
+
+
+
+
+	// uniformly scale the scene:
+
+	if (Scale < MINSCALE)
+		Scale = MINSCALE;
+	glScalef((GLfloat)Scale, (GLfloat)Scale, (GLfloat)Scale);
+
+
+	// set the fog parameters:
+
+	if (DepthCueOn != 0)
+	{
+		glFogi(GL_FOG_MODE, FOGMODE);
+		glFogfv(GL_FOG_COLOR, FOGCOLOR);
+		glFogf(GL_FOG_DENSITY, FOGDENSITY);
+		glFogf(GL_FOG_START, FOGSTART);
+		glFogf(GL_FOG_END, FOGEND);
+		glEnable(GL_FOG);
+	}
+	else
+	{
+		glDisable(GL_FOG);
+	}
+
+
+	// possibly draw the axes:
+
+	if (AxesOn != 0)
+	{
+		glColor3fv(&Colors[WhichColor][0]);
+		glCallList(AxesList);
+	}
+
+
+	glEnable(GL_NORMALIZE);
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(-1);
+	
+	/*
+	** Set up light 1
+	*/
+	float posx = 0.;
+	float posy = 0.;
+	float posz = 0.;
+
+	// This is going to be our first light
+	// It is a standard white point light 
+	// this light
+	glPushMatrix();
+	glColor3f(1., 1., 1.); // Just white
+	glTranslatef(posx, posy, posz); //move to sphere to pos
+	
+
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	
+	glTranslatef(0., 0., 0.);
+	glScalef(33.63, 33.63, 33.63);
+	glCallList(planetList);
+	glPopMatrix();
+
+	glDisable(GL_TEXTURE_2D);
+	// end
+
+	SetPointLight(GL_LIGHT1, posx, posy, posz, 1., 1., 1.); // Now set white point light at that position
+	glPopMatrix();
+
+	
+
+
+	float planetDiameters[8];
+	planetDiameters[0] = 0.383;
+	planetDiameters[1] = 0.949;
+	planetDiameters[2] = 1;
+	planetDiameters[3] = 0.532;
+	planetDiameters[4] = 11.21;
+	planetDiameters[5] = 9.45;
+	planetDiameters[6] = 4.01;
+	planetDiameters[7] = 3.88;
+
+	float planetOrbitalRadius[8];
+	planetOrbitalRadius[0] = 0.387;
+	planetOrbitalRadius[1] = 0.723;
+	planetOrbitalRadius[2] = 1.;
+	planetOrbitalRadius[3] = 1.524;
+	planetOrbitalRadius[4] = 5.203;
+	planetOrbitalRadius[5] = 9.539;
+	planetOrbitalRadius[6] = 19.18;
+	planetOrbitalRadius[7] = 30.06;
+
+	glEnable(GL_LIGHTING);
+	// Which lights should be enabled?
+	// Light 1
+	if (light1On)
+		glEnable(GL_LIGHT1);
+	else
+		glDisable(GL_LIGHT1);
+
+
+	float sunLength = 33.63;
+	float theSpeed = 100.;
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(0);
+	// Mercury
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	// Animateing with time to rotate
+	glRotatef(((360 * Time) / pow(planetOrbitalRadius[0], 1.5)) * theSpeed, 0., 1., 0.);
+	glTranslatef(sunLength + (10 * planetOrbitalRadius[0]) + planetDiameters[0], 0., 0.);
+	glScalef(planetDiameters[0], planetDiameters[0], planetDiameters[0]);
+	glPushMatrix();
+	glRotatef(360 * Time, 0., 1., 0.);	// Rotate around sun
+	glCallList(planetList);
+	glPopMatrix();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(1);
+	// Venus
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	// Animateing with time to rotate
+	glRotatef(((360 * Time) / pow(planetOrbitalRadius[1], 1.5)) * theSpeed, 0., 1., 0.);
+	glTranslatef(sunLength + (10 * planetOrbitalRadius[1]) + planetDiameters[1], 0., 0.);
+	glScalef(planetDiameters[1], planetDiameters[1], planetDiameters[1]);
+	glPushMatrix();
+	glRotatef(360 * Time, 0., 1., 0.);	// Rotate around sun
+	glCallList(planetList);
+	glPopMatrix();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(2);
+	// Earth
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	// Animateing with time to rotate
+	glRotatef(((360 * Time) / pow(planetOrbitalRadius[2], 1.5)) * theSpeed, 0., 1., 0.);
+	glTranslatef(sunLength + (10 * planetOrbitalRadius[2]) + planetDiameters[2], 0., 0.);
+	glScalef(planetDiameters[2], planetDiameters[2], planetDiameters[2]);
+	glPushMatrix();
+	glRotatef(360 * Time, 0., 1., 0.);	// Rotate around sun
+	glCallList(planetList);
+	glPopMatrix();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(3);
+	// Mars
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	// Animateing with time to rotate
+	glRotatef(((360 * Time) / pow(planetOrbitalRadius[3], 1.5)) * theSpeed, 0., 1., 0.);
+	glTranslatef(sunLength + (10 * planetOrbitalRadius[3]) + planetDiameters[3], 0., 0.);
+	glScalef(planetDiameters[3], planetDiameters[3], planetDiameters[3]);
+	glPushMatrix();
+	glRotatef(360 * Time, 0., 1., 0.);	// Rotate around sun
+	glCallList(planetList);
+	glPopMatrix();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(4);
+	
+	// Jupiter
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	// Animateing with time to rotate
+	glRotatef(((360 * Time) / pow(planetOrbitalRadius[4], 1.5)) * theSpeed, 0., 1., 0.);
+	glTranslatef(sunLength + (10 * planetOrbitalRadius[4]) + planetDiameters[4], 0., 0.);
+	glScalef(planetDiameters[4], planetDiameters[4], planetDiameters[4]);
+	glPushMatrix();
+	glRotatef(360 * Time, 0., 1., 0.);	// Rotate around sun
+	glCallList(planetList);
+	glPopMatrix();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(5);
+
+	// Saturn
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	// Animateing with time to rotate
+	glRotatef(((360 * Time) / pow(planetOrbitalRadius[5], 1.5)) * theSpeed, 0., 1., 0.);
+	glTranslatef(sunLength + (10 * planetOrbitalRadius[5]) + planetDiameters[5], 0., 0.);
+	glScalef(planetDiameters[5], planetDiameters[5], planetDiameters[5]);
+
+	glPushMatrix();
+	glRotatef(360 * Time, 0., 1., 0.);	// Rotate around sun
+	glCallList(planetList);
+	// Now create the rings
+	glPushMatrix();
+	glRotatef(90., 1., 0., 0.);
+	glCallList(saturnRingList);
+	glPopMatrix();
+
+	//glCallList(saturnRingList);
+	glPopMatrix();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(6);
+	// Uranus
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	// Animateing with time to rotate
+	glRotatef(((360 * Time) / pow(planetOrbitalRadius[6], 1.5)) * theSpeed, 0., 1., 0.);
+	glTranslatef(sunLength + (10 * planetOrbitalRadius[6]) + planetDiameters[6], 0., 0.);
+	glScalef(planetDiameters[6], planetDiameters[6], planetDiameters[6]);
+	glPushMatrix();
+	glRotatef(360 * Time, 0., 1., 0.);	// Rotate around sun
+	glCallList(planetList);
+	glPopMatrix();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(7);
+	// Neptune
+	glPushMatrix();
+	glShadeModel(GL_SMOOTH);
+	SetMaterial(1., 1., 1., 50);
+	// Animateing with time to rotate
+	glRotatef(((360 * Time) / pow(planetOrbitalRadius[7], 1.5)) * theSpeed, 0., 1., 0.);
+	glTranslatef(sunLength + (10 * planetOrbitalRadius[7]) + planetDiameters[7], 0., 0.);
+	glScalef(planetDiameters[7], planetDiameters[7], planetDiameters[7]);
+
+	glPushMatrix();
+	glRotatef(360 * Time, 0., 1., 0.);	// Rotate around sun
+	glCallList(planetList);
+	glPopMatrix();
+	glPopMatrix();
+	
+	// nOW DISABLE IT SO IT DOESN'T GO ONTO EVERYTHING
+	//glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_2D);
+
+	
+	glDisable(GL_LIGHTING);
+	// Now Create orbitals
+	glPushMatrix();
+	glEnable(GL_COLOR_MATERIAL); // applied this to keep color
+	float ringSize = sunLength + (10 * planetOrbitalRadius[0]) + planetDiameters[0];
+	glScalef(ringSize, ringSize, ringSize);
+	glCallList(BoxList);
+	glDisable(GL_COLOR_MATERIAL); // applied this to keep color
+	glPopMatrix();
+
+	glPushMatrix();
+	glEnable(GL_COLOR_MATERIAL); // applied this to keep color
+	ringSize = sunLength + (10 * planetOrbitalRadius[1]) + planetDiameters[1];
+	glScalef(ringSize, ringSize, ringSize);
+	glCallList(BoxList);
+	glDisable(GL_COLOR_MATERIAL); // applied this to keep color
+	glPopMatrix();
+
+	glPushMatrix();
+	glEnable(GL_COLOR_MATERIAL); // applied this to keep color
+	ringSize = sunLength + (10 * planetOrbitalRadius[2]) + planetDiameters[2];
+	glScalef(ringSize, ringSize, ringSize);
+	glCallList(BoxList);
+	glDisable(GL_COLOR_MATERIAL); // applied this to keep color
+	glPopMatrix();
+
+	glPushMatrix();
+	glEnable(GL_COLOR_MATERIAL); // applied this to keep color
+	ringSize = sunLength + (10 * planetOrbitalRadius[3]) + planetDiameters[3];
+	glScalef(ringSize, ringSize, ringSize);
+	glCallList(BoxList);
+	glDisable(GL_COLOR_MATERIAL); // applied this to keep color
+	glPopMatrix();
+
+	glPushMatrix();
+	glEnable(GL_COLOR_MATERIAL); // applied this to keep color
+	ringSize = sunLength + (10 * planetOrbitalRadius[4]) + planetDiameters[4];
+	glScalef(ringSize, ringSize, ringSize);
+	glCallList(BoxList);
+	glDisable(GL_COLOR_MATERIAL); // applied this to keep color
+	glPopMatrix();
+
+	glPushMatrix();
+	glEnable(GL_COLOR_MATERIAL); // applied this to keep color
+	ringSize = sunLength + (10 * planetOrbitalRadius[5]) + planetDiameters[5];
+	glScalef(ringSize, ringSize, ringSize);
+	glCallList(BoxList);
+	glDisable(GL_COLOR_MATERIAL); // applied this to keep color
+	glPopMatrix();
+
+	glPushMatrix();
+	glEnable(GL_COLOR_MATERIAL); // applied this to keep color
+	ringSize = sunLength + (10 * planetOrbitalRadius[6]) + planetDiameters[6];
+	glScalef(ringSize, ringSize, ringSize);
+	glCallList(BoxList);
+	glDisable(GL_COLOR_MATERIAL); // applied this to keep color
+	glPopMatrix();
+	
+	glPushMatrix();
+	glEnable(GL_COLOR_MATERIAL); // applied this to keep color
+	ringSize = sunLength + (10 * planetOrbitalRadius[7]) + planetDiameters[7];
+	glScalef(ringSize, ringSize, ringSize);
+	glCallList(BoxList);
+	glDisable(GL_COLOR_MATERIAL); // applied this to keep color
+	glPopMatrix();
+	
+	
+
+	glEnable(GL_TEXTURE_2D);
+	InitTextures(8);
+	glPushMatrix();
+	glColor3f(1., 1., 1.);
+	glTranslatef(100, 0., 0.);
+	glScalef(600, 600, 600);
+	//glCallList(heliBodyList);
+	//glutSolidSphere(500, 80, 80);
+	glCallList(planetList);
+	glPopMatrix();
+	glDisable(GL_TEXTURE_2D);
+	
+
+#ifdef DEMO_Z_FIGHTING
+	if (DepthFightingOn != 0)
+	{
+		glPushMatrix();
+		glRotatef(90., 0., 1., 0.);
+		glCallList(BoxList);
+		glPopMatrix();
+	}
+#endif
+
+
+	// draw some gratuitous text that just rotates on top of the scene:
+
+	glDisable(GL_DEPTH_TEST);
+	glColor3f(0., 1., 1.);
+	//DoRasterString( 0., 1., 0., "Text That Moves" );
+
+
+	// draw some gratuitous text that is fixed on the screen:
+	//
+	// the projection matrix is reset to define a scene whose
+	// world coordinate system goes from 0-100 in each axis
+	//
+	// this is called "percent units", and is just a convenience
+	//
+	// the modelview matrix is reset to identity as we don't
+	// want to transform these coordinates
+
+	glDisable(GL_DEPTH_TEST);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0., 100., 0., 100.);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glColor3f(1., 1., 1.);
+	DoRasterString(5., 5., 0., textPlanet);
+
+
+	// swap the double-buffered framebuffers:
+
+	glutSwapBuffers();
+
+
+	// be sure the graphics buffer has been sent:
+	// note: be sure to use glFlush( ) here, not glFinish( ) !
+
+	glFlush();
+}
+
+
+void
+DoAxesMenu(int id)
+{
+	AxesOn = id;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+void
+DoColorMenu(int id)
+{
+	WhichColor = id - RED;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+void
+DoDebugMenu(int id)
+{
+	DebugOn = id;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+void
+DoDepthBufferMenu(int id)
+{
+	DepthBufferOn = id;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+void
+DoDepthFightingMenu(int id)
+{
+	DepthFightingOn = id;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+void
+DoDepthMenu(int id)
+{
+	DepthCueOn = id;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+// main menu callback:
+
+void
+DoMainMenu(int id)
+{
+	switch (id)
+	{
+	case RESET:
+		Reset();
+		break;
+
+	case QUIT:
+		// gracefully close out the graphics:
+		// gracefully close the graphics window:
+		// gracefully exit the program:
+		glutSetWindow(MainWindow);
+		glFinish();
+		glutDestroyWindow(MainWindow);
+		exit(0);
+		break;
+
+	default:
+		fprintf(stderr, "Don't know what to do with Main Menu ID %d\n", id);
+	}
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+void
+DoProjectMenu(int id)
+{
+	WhichProjection = id;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+void
+DoShadowsMenu(int id)
+{
+	ShadowsOn = id;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+void
+DoViewMenu(int id)
+{
+	WhichView = id;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+void
+DoTextureMenu(int id)
+{
+	WhichTexture = id;
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+// use glut to display a string of characters using a raster font:
+
+void
+DoRasterString(float x, float y, float z, char* s)
+{
+	glRasterPos3f((GLfloat)x, (GLfloat)y, (GLfloat)z);
+
+	char c;			// one character to print
+	for (; (c = *s) != '\0'; s++)
+	{
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, c);
+	}
+}
+
+
+// use glut to display a string of characters using a stroke font:
+
+void
+DoStrokeString(float x, float y, float z, float ht, char* s)
+{
+	glPushMatrix();
+	glTranslatef((GLfloat)x, (GLfloat)y, (GLfloat)z);
+	float sf = ht / (119.05f + 33.33f);
+	glScalef((GLfloat)sf, (GLfloat)sf, (GLfloat)sf);
+	char c;			// one character to print
+	for (; (c = *s) != '\0'; s++)
+	{
+		glutStrokeCharacter(GLUT_STROKE_ROMAN, c);
+	}
+	glPopMatrix();
+}
+
+
+// return the number of seconds since the start of the program:
+
+float
+ElapsedSeconds()
+{
+	// get # of milliseconds since the start of the program:
+
+	int ms = glutGet(GLUT_ELAPSED_TIME);
+
+	// convert it to seconds:
+
+	return (float)ms / 1000.f;
+}
+
+
+// initialize the glui window:
+
+void
+InitMenus()
+{
+	glutSetWindow(MainWindow);
+
+	int numColors = sizeof(Colors) / (3 * sizeof(int));
+	int colormenu = glutCreateMenu(DoColorMenu);
+	for (int i = 0; i < numColors; i++)
+	{
+		glutAddMenuEntry(ColorNames[i], i);
+	}
+
+	int axesmenu = glutCreateMenu(DoAxesMenu);
+	glutAddMenuEntry("Off", 0);
+	glutAddMenuEntry("On", 1);
+
+	int depthcuemenu = glutCreateMenu(DoDepthMenu);
+	glutAddMenuEntry("Off", 0);
+	glutAddMenuEntry("On", 1);
+
+	int depthbuffermenu = glutCreateMenu(DoDepthBufferMenu);
+	glutAddMenuEntry("Off", 0);
+	glutAddMenuEntry("On", 1);
+
+	int depthfightingmenu = glutCreateMenu(DoDepthFightingMenu);
+	glutAddMenuEntry("Off", 0);
+	glutAddMenuEntry("On", 1);
+
+	int debugmenu = glutCreateMenu(DoDebugMenu);
+	glutAddMenuEntry("Off", 0);
+	glutAddMenuEntry("On", 1);
+
+	int projmenu = glutCreateMenu(DoProjectMenu);
+	glutAddMenuEntry("Orthographic", ORTHO);
+	glutAddMenuEntry("Perspective", PERSP);
+
+	int viewmenu = glutCreateMenu(DoViewMenu);
+	glutAddMenuEntry("Solar System", SOLARSYSTEM);
+	glutAddMenuEntry("Mercury", MERCURY);
+	glutAddMenuEntry("Venus", VENUS);
+	glutAddMenuEntry("Earth", EARTH);
+	glutAddMenuEntry("Mars", MARS);
+	glutAddMenuEntry("Jupiter", JUPITER);
+	glutAddMenuEntry("Saturn", SATURN);
+	glutAddMenuEntry("Uranus", URANUS);
+	glutAddMenuEntry("Neptune", NEPTUNE);
+
+	int texturemenu = glutCreateMenu(DoTextureMenu);
+	glutAddMenuEntry("No Texture", STANDARDT);
+	glutAddMenuEntry("Texture", TEXTURET);
+	glutAddMenuEntry("Distort", DISTORTT);
+
+	int shadowsmenu = glutCreateMenu(DoShadowsMenu);
+	glutAddMenuEntry("Off", 0);
+	glutAddMenuEntry("On", 1);
+
+	int mainmenu = glutCreateMenu(DoMainMenu);
+	glutAddSubMenu("Axes", axesmenu);
+	glutAddSubMenu("Colors", colormenu);
+
+
+#ifdef DEMO_DEPTH_BUFFER
+	glutAddSubMenu("Depth Buffer", depthbuffermenu);
+#endif
+
+#ifdef DEMO_Z_FIGHTING
+	glutAddSubMenu("Depth Fighting", depthfightingmenu);
+#endif
+
+	glutAddSubMenu("Depth Cue", depthcuemenu);
+	glutAddSubMenu("Projection", projmenu);
+	glutAddSubMenu("View", viewmenu);
+	glutAddSubMenu("Texture", texturemenu);
+#ifdef ENABLE_SHADOWS
+	glutAddSubMenu("Shadows", shadowsmenu);
+#endif
+
+	glutAddMenuEntry("Reset", RESET);
+	glutAddSubMenu("Debug", debugmenu);
+	glutAddMenuEntry("Quit", QUIT);
+
+	// attach the pop-up menu to the right mouse button:
+
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
+
+
+// initialize the glut and OpenGL libraries:
+//	also setup display lists and callback functions
+void
+InitTextures(int whichTex) {
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	if (whichTex == -1) {
+
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureSun);
+	}
+	else if (whichTex == 0) {
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureMercury);
+	}
+	else if (whichTex == 1) {
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureVenus);
+	}
+	else if (whichTex == 2) {
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureEarth);
+	}
+	else if (whichTex == 3) {
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureMars);
+	}
+	else if (whichTex == 4) {
+		
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureJupiter);
+	}
+	else if (whichTex == 5) {
+
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureSaturn);
+	}
+	else if (whichTex == 6) {
+
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureUranus);
+	}
+	else if (whichTex == 7) {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureNeptune);
+
+	}
+	else {
+		
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, textureStars);
+
+	}
+}
+
+void
+InitGraphics()
+{
+	
+	textureSun = BmpToTexture("2k_sun.bmp", &textureWidth, &textureHeight);
+	textureMercury = BmpToTexture("2k_mercury.bmp", &textureWidth, &textureHeight);
+	textureVenus = BmpToTexture("2k_venus.bmp", &textureWidth, &textureHeight);
+	textureEarth = BmpToTexture("2k_earth.bmp", &textureWidth, &textureHeight);
+	textureMars = BmpToTexture("2k_mars.bmp", &textureWidth, &textureHeight);
+	textureJupiter = BmpToTexture("2k_jupiter.bmp", &textureWidth, &textureHeight);
+	textureSaturn = BmpToTexture("2k_saturn.bmp", &textureWidth, &textureHeight);
+	textureUranus = BmpToTexture("2k_uranus.bmp", &textureWidth, &textureHeight);
+	textureNeptune = BmpToTexture("2k_neptune.bmp", &textureWidth, &textureHeight);
+	textureStars = BmpToTexture("2k_stars_milky_way.bmp", &textureWidth, &textureHeight);
+	
+	
+	//texture
+	// request the display modes:
+	// ask for red-green-blue-alpha color, double-buffering, and z-buffering:
+
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+
+	// set the initial window configuration:
+
+	glutInitWindowPosition(0, 0);
+	glutInitWindowSize(INIT_WINDOW_SIZE, INIT_WINDOW_SIZE);
+
+	// open the window and set its title:
+
+	MainWindow = glutCreateWindow(WINDOWTITLE);
+	glutSetWindowTitle(WINDOWTITLE);
+
+	// set the framebuffer clear values:
+
+	glClearColor(BACKCOLOR[0], BACKCOLOR[1], BACKCOLOR[2], BACKCOLOR[3]);
+
+	// setup the callback functions:
+	// DisplayFunc -- redraw the window
+	// ReshapeFunc -- handle the user resizing the window
+	// KeyboardFunc -- handle a keyboard input
+	// MouseFunc -- handle the mouse button going down or up
+	// MotionFunc -- handle the mouse moving with a button down
+	// PassiveMotionFunc -- handle the mouse moving with a button up
+	// VisibilityFunc -- handle a change in window visibility
+	// EntryFunc	-- handle the cursor entering or leaving the window
+	// SpecialFunc -- handle special keys on the keyboard
+	// SpaceballMotionFunc -- handle spaceball translation
+	// SpaceballRotateFunc -- handle spaceball rotation
+	// SpaceballButtonFunc -- handle spaceball button hits
+	// ButtonBoxFunc -- handle button box hits
+	// DialsFunc -- handle dial rotations
+	// TabletMotionFunc -- handle digitizing tablet motion
+	// TabletButtonFunc -- handle digitizing tablet button hits
+	// MenuStateFunc -- declare when a pop-up menu is in use
+	// TimerFunc -- trigger something to happen a certain time from now
+	// IdleFunc -- what to do when nothing else is going on
+
+	glutSetWindow(MainWindow);
+	glutDisplayFunc(Display);
+	glutReshapeFunc(Resize);
+	glutKeyboardFunc(Keyboard);
+	glutMouseFunc(MouseButton);
+	glutMotionFunc(MouseMotion);
+	glutPassiveMotionFunc(NULL);
+	glutVisibilityFunc(Visibility);
+	glutEntryFunc(NULL);
+	glutSpecialFunc(NULL);
+	glutSpaceballMotionFunc(NULL);
+	glutSpaceballRotateFunc(NULL);
+	glutSpaceballButtonFunc(NULL);
+	glutButtonBoxFunc(NULL);
+	glutDialsFunc(NULL);
+	glutTabletMotionFunc(NULL);
+	glutTabletButtonFunc(NULL);
+	glutMenuStateFunc(NULL);
+	glutTimerFunc(-1, NULL, 0);
+	//glutIdleFunc(Animate);	//change to animate instead on null
+	glutIdleFunc(NULL);	//change to animate instead on null
+
+	// init glew (a window must be open to do this):
+
+#ifdef WIN32
+	GLenum err = glewInit();
+	if (err != GLEW_OK)
+	{
+		fprintf(stderr, "glewInit Error\n");
+	}
+	else
+		fprintf(stderr, "GLEW initialized OK\n");
+	fprintf(stderr, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+#endif
+
+}
+
+// create array from 3 seperate values
+float*
+Array3(float a, float b, float c)
+{
+	static float array[4];
+	array[0] = a;
+	array[1] = b;
+	array[2] = c;
+	array[3] = 1.;
+	return array;
+}
+
+
+// utility to create an array from a multiplier and an array:
+float*
+MulArray3(float factor, float array0[3])
+{
+	static float array[4];
+	array[0] = factor * array0[0];
+	array[1] = factor * array0[1];
+	array[2] = factor * array0[2];
+	array[3] = 1.;
+	return array;
+}
+/*
+** Shortcut Function to set point light
+*/
+void
+SetPointLight(int ilight, float x, float y, float z, float r, float g, float b)
+{
+	glLightfv(ilight, GL_POSITION, Array3(x, y, z));
+	glLightfv(ilight, GL_AMBIENT, Array3(0., 0., 0.));
+	glLightfv(ilight, GL_DIFFUSE, Array3(r, g, b));
+	glLightfv(ilight, GL_SPECULAR, Array3(r, g, b));
+	glLightf(ilight, GL_CONSTANT_ATTENUATION, 1.);
+	glLightf(ilight, GL_LINEAR_ATTENUATION, 0.);
+	glLightf(ilight, GL_QUADRATIC_ATTENUATION, 0.);
+	glEnable(ilight);
+}
+
+/*
+** Shortcut to set spot light
+*/
+void
+SetSpotLight(int ilight, float x, float y, float z, float xdir, float ydir, float zdir, float r, float g, float b)
+{
+	glLightfv(ilight, GL_POSITION, Array3(x, y, z));
+	glLightfv(ilight, GL_SPOT_DIRECTION, Array3(xdir, ydir, zdir));
+	glLightf(ilight, GL_SPOT_EXPONENT, 1.);
+	glLightf(ilight, GL_SPOT_CUTOFF, 45.);
+	glLightfv(ilight, GL_AMBIENT, Array3(0., 0., 0.));
+	glLightfv(ilight, GL_DIFFUSE, Array3(r, g, b));
+	glLightfv(ilight, GL_SPECULAR, Array3(r, g, b));
+	glLightf(ilight, GL_CONSTANT_ATTENUATION, 1.);
+	glLightf(ilight, GL_LINEAR_ATTENUATION, 0.);
+	glLightf(ilight, GL_QUADRATIC_ATTENUATION, 0.);
+	glEnable(ilight);
+}
+
+void
+SetMaterial(float r, float g, float b, float shininess)
+{
+	glMaterialfv(GL_BACK, GL_EMISSION, Array3(0., 0., 0.));
+	glMaterialfv(GL_BACK, GL_AMBIENT, MulArray3(.4f, White));
+	glMaterialfv(GL_BACK, GL_DIFFUSE, MulArray3(1., White));
+	glMaterialfv(GL_BACK, GL_SPECULAR, Array3(0., 0., 0.));
+	glMaterialf(GL_BACK, GL_SHININESS, 2.f);
+	glMaterialfv(GL_FRONT, GL_EMISSION, Array3(0., 0., 0.));
+	glMaterialfv(GL_FRONT, GL_AMBIENT, Array3(r, g, b));
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, Array3(r, g, b));
+	glMaterialfv(GL_FRONT, GL_SPECULAR, MulArray3(.8f, White));
+	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+}
+
+/*
+** This is my draw cyclinder func
+** I use this to draw my lightsaber
+** In this case it is just out in front of the helicopter
+*/
+void drawCylinder(float radius, float height, float startHeight, bool bottomCircle, bool lowerGrip, bool button, float red, float blue, float green) {
+	/* Draw a circle with middle at 0,0,0*/
+	if (bottomCircle) {
+		glBegin(GL_TRIANGLE_FAN);
+
+		glColor3f(red, blue, green);
+
+		glVertex3f(0, startHeight, 0);
+
+		for (int i = 0; i < 360; i++) {
+			float theta = 2.0f * pi * float(i) / float(360);
+			float x = radius * cosf(theta);
+			float z = radius * sinf(theta);
+			glVertex3f(x, startHeight, z);
+		}
+
+
+		glEnd();
+	}
+
+
+	//Cylinder
+	glBegin(GL_QUADS);
+	glColor3f(red, blue, green);
+
+	for (int i = 0; i < 360; i++) {
+
+		float theta = (2.0f * pi * float(i)) / float(360);
+		float thetaNext = (2.0f * pi * float(i + 1)) / float(360);
+		float x = radius * cosf(theta);
+		float z = radius * sinf(theta);
+		float xNext = radius * cosf(thetaNext);
+		float zNext = radius * sinf(thetaNext);
+		glVertex3f(xNext, startHeight, zNext);
+		glVertex3f(xNext, height + startHeight, zNext);
+
+		glVertex3f(x, height + startHeight, z);
+		glVertex3f(x, startHeight, z);
+
+	}
+
+	glEnd();
+
+	if (!lowerGrip) {
+		//Closing/top circle
+		glBegin(GL_TRIANGLE_FAN);
+
+		glColor3f(red, blue, green);
+
+		glVertex3f(0, height + startHeight, 0);
+
+		for (int i = 0; i < 360; i++) {
+
+			float theta = 2.0f * pi * float(i) / float(360);
+			float x = radius * cosf(theta);
+			float z = radius * sinf(theta);
+			glVertex3f(x, height + startHeight, z);
+		}
+
+
+		glEnd();
+	}
+
+	if (lowerGrip) {
+		//This is for lower handle rigid
+		glBegin(GL_QUADS);
+		glColor3f(0.67f, 0.35f, 0.11f);
+		//glVertex3f(1.5, startHeight, 0);
+		for (int i = 0; i < 30; i++) {
+
+			float theta = 2.0f * pi * float(i) / float(30);
+			float ix = cosf(theta);
+			float iz = sinf(theta);
+			float x = 1.15f * cosf(theta);
+			float z = 1.15f * sinf(theta);
+			glVertex3f(ix, startHeight, iz);
+			glVertex3f(x, startHeight, z);
+			glVertex3f(x, -12, z);
+			glVertex3f(ix, -12, iz);
+
+		}
+
+		glEnd();
+	}
+
+	if (button) {
+		glBegin(GL_QUADS);
+		glColor3f(0.93f, 0.93f, 0.93f);
+		//glVertex3f(1.5, startHeight, 0);
+		float ixOne, xOne, izOne, zOne;
+		float ixTwo, xTwo, izTwo, zTwo;
+		for (int i = 0; i < 25; i++) {
+
+			float theta = 2.0f * pi * float(i) / float(25);
+			float ix = radius * cosf(theta);
+			float iz = radius * sinf(theta);
+			float x = (radius + 0.25) * cosf(theta);
+			float z = (radius + 0.25) * sinf(theta);
+
+			if (i == 5) {
+				ixOne = ix;
+				izOne = iz;
+				xOne = x;
+				zOne = z;
+				//Inside Low Point
+				glVertex3f(ix, startHeight, iz);
+				//Outside Low Point
+				glVertex3f(x, startHeight, z);
+				//Inside Top Point
+				glVertex3f(x, (2 + startHeight), z);
+				//Outside Top Point
+				glVertex3f(ix, (2 + startHeight), iz);
+			}
+			if (i == 7) {
+				ixTwo = ix;
+				izTwo = iz;
+				xTwo = x;
+				zTwo = z;
+				//Inside Low Point
+				glVertex3f(ix, startHeight, iz);
+				//Outside Low Point
+				glVertex3f(x, startHeight, z);
+				//Inside Top Point
+				glVertex3f(x, (2 + startHeight), z);
+				//Outside Top Point
+				glVertex3f(ix, (2 + startHeight), iz);
+			}
+
+		}
+
+		//Now we have the 2 vertical extrusions, so tie them together
+		glColor3f(0.83137255, 0.68627451, 0.21568627);
+		glVertex3f(xOne, startHeight, zOne);
+		glVertex3f(xOne, (2 + startHeight), zOne);
+		glVertex3f(xTwo, (2 + startHeight), zTwo);
+		glVertex3f(xTwo, startHeight, zTwo);
+		glColor3f(0.93, 0.93, 0.93);
+		/// Now cover top and bottom
+		glVertex3f(ixOne, startHeight, izOne);
+		glVertex3f(ixTwo, startHeight, izTwo);
+		glVertex3f(xTwo, startHeight, zTwo);
+		glVertex3f(xOne, startHeight, zOne);
+		///
+		glVertex3f(ixOne, (2 + startHeight), izOne);
+		glVertex3f(ixTwo, (2 + startHeight), izTwo);
+		glVertex3f(xTwo, (2 + startHeight), zTwo);
+		glVertex3f(xOne, (2 + startHeight), zOne);
+
+
+
+		glEnd();
+	}
+
+}
+
+
+
+// initialize the display lists that will not change:
+// (a display list is a way to store opengl commands in
+//  memory so that they can be played back efficiently at a later time
+//  with a call to glCallList( )
+
+void
+InitLists()
+{
+	float dx = BOXSIZE / 2.f;
+	float dy = BOXSIZE / 2.f;
+	float dz = BOXSIZE / 2.f;
+	float radius = 1;
+	glutSetWindow(MainWindow);
+
+	// create the object:
+
+	BoxList = glGenLists(1);
+	glNewList(BoxList, GL_COMPILE);
+	
+	glBegin(GL_LINE_STRIP);
+
+	glColor3f(1., 1., 1.);
+	
+	
+
+	for (int i = 0; i <= 360; i++) {
+		float theta = 2.0f * pi * float(i) / float(360);
+		float x = radius * cosf(theta);
+		float z = radius * sinf(theta);
+		glVertex3f(x, 0., z);
+	}
+
+
+	glEnd();
+	/*
+	// raddius, height, starting height, bottom circle?, grip?
+	drawCylinder(1, 6, 0 - 15, true, true, false, 0.93, 0.93, 0.93);
+	drawCylinder(1.15, 2, 6 - 15, true, false, true, 0.32, 0.32, 0.32);
+	drawCylinder(0.75, 0.25, 8 - 15, false, false, false, 0.93, 0.93, 0.93);
+	drawCylinder(1, 0.5, 8.25 - 15, false, false, false, 0.67, 0.35, 0.11);
+	drawCylinder(0.75, 0.25, 8.75 - 15, false, false, false, 0.93, 0.93, 0.93);
+	drawCylinder(1, 0.5, 9 - 15, false, false, false, 0.67, 0.35, 0.11);
+	drawCylinder(0.75, 0.25, 9.5 - 15, false, false, false, 0.93, 0.93, 0.93);
+	drawCylinder(1, 0.5, 9.75 - 15, false, false, false, 0.67, 0.35, 0.11);
+	drawCylinder(0.75, 0.25, 10.25 - 15, false, false, false, 0.93, 0.93, 0.93);
+	drawCylinder(1, 0.5, 10.5 - 15, false, false, false, 0.67, 0.35, 0.11);
+	drawCylinder(0.5, 2, 11 - 15, false, false, false, 0.83137255, 0.68627451, 0.21568627);
+	drawCylinder(0.75, 0.5, 13 - 15, false, false, false, 0.83137255, 0.68627451, 0.21568627);
+	drawCylinder(1, 0.5, 13.5 - 15, false, false, false, 0.67, 0.35, 0.11);
+	drawCylinder(1.2, 0.1, 14 - 15, false, false, false, 0.32, 0.32, 0.32);
+	drawCylinder(0.25, 30, 14.1 - 15, false, false, false, 0.12, 0.92, 0.99);
+	*/
+	glEndList();
+
+	planetList = glGenLists(1);
+	glNewList(planetList, GL_COMPILE);
+
+	OsuSphere(1, 360, 360);
+
+	glEndList();
+
+
+	saturnRingList = glGenLists(1);
+	glNewList(saturnRingList, GL_COMPILE);
+	//glutSolidTorus(20., 30., 50, 50);
+	glBegin(GL_TRIANGLE_STRIP);
+	for (int i = 1; i <= 360; i++) {
+		float x = sin(i);
+		float y = cos(i);
+		glVertex2f(0 + y * 1.2, 0 + x * 1.2);
+		glVertex2f(0 + y * 2, 0 + x * 2);
+	}
+	glEnd();
+
+	glEndList();
+
+	// Start Helicopter Body
+	//create list for body
+
+
+	// We are gonna start our sphere here. Just for times sake we are gonna do it in our helibody list
+	heliBodyList = glGenLists(1);
+	glNewList(heliBodyList, GL_COMPILE);
+
+	glBegin(GL_QUADS);
+	glTexCoord2f(0., 0.);
+	glVertex3f(0., 0., 0.);
+	glTexCoord2f(1., 0.);
+	glVertex3f(1., 0., 0.);
+	glTexCoord2f(1., 1.);
+	glVertex3f(1., 1., 0.);
+	glTexCoord2f(0., 1.);
+	glVertex3f(0., 1., 0.);
+	glEnd();
+
+
+	glEndList(); //end that list
+
+	//End Helicopter body
+
+
+	/*
+	// Start blades
+	bladesList = glGenLists(1);
+	glNewList(bladesList, GL_COMPILE);
+	glPushMatrix();
+	// Begin first blade
+
+	glColor3f(1., 1., 1.);
+	glBegin(GL_TRIANGLES);
+	//Make blades here
+	glVertex2f(BLADE_RADIUS, BLADE_WIDTH / 2.);
+	glVertex2f(0., 0.);
+	glVertex2f(BLADE_RADIUS, -BLADE_WIDTH / 2.);
+
+	glVertex2f(-BLADE_RADIUS, -BLADE_WIDTH / 2.);
+	glVertex2f(0., 0.);
+	glVertex2f(-BLADE_RADIUS, BLADE_WIDTH / 2.);
+	// End Blade
+	// This will be called twice
+	glEnd();
+
+
+	glPopMatrix();
+	glEndList();
+	// End blades
+	*/
+	// create the axes:
+
+	AxesList = glGenLists(1);
+	glNewList(AxesList, GL_COMPILE);
+	glLineWidth(AXES_WIDTH);
+	Axes(1.5);
+	glLineWidth(1.);
+	glEndList();
+}
+
+
+// the keyboard callback:
+
+void
+Keyboard(unsigned char c, int x, int y)
+{
+	if (DebugOn != 0)
+		fprintf(stderr, "Keyboard: '%c' (0x%0x)\n", c, c);
+
+	switch (c)
+	{
+	case 'o':
+	case 'O':
+		WhichProjection = ORTHO;
+		break;
+
+	case 'p':
+	case 'P':
+		WhichProjection = PERSP;
+		break;
+
+	case 'q':
+	case 'Q':
+	case ESCAPE:
+		DoMainMenu(QUIT);	// will not return here
+		break;				// happy compiler
+
+	case 'f':
+	case 'F':
+		Frozen = !Frozen;
+		if (Frozen)
+			glutIdleFunc(NULL); //stop animation
+		else
+			glutIdleFunc(Animate); //resume animation
+		break;
+	case '1':
+		light1On = !light1On;
+		break;
+	case '2':
+		light2On = !light2On;
+		break;
+	case '3':
+		light3On = !light3On;
+		break;
+	default:
+		fprintf(stderr, "Don't know what to do with keyboard hit: '%c' (0x%0x)\n", c, c);
+	}
+
+	// force a call to Display( ):
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+// called when the mouse button transitions down or up:
+
+void
+MouseButton(int button, int state, int x, int y)
+{
+	int b = 0;			// LEFT, MIDDLE, or RIGHT
+
+	if (DebugOn != 0)
+		fprintf(stderr, "MouseButton: %d, %d, %d, %d\n", button, state, x, y);
+
+
+	// get the proper button bit mask:
+
+	switch (button)
+	{
+	case GLUT_LEFT_BUTTON:
+		b = LEFT;		break;
+
+	case GLUT_MIDDLE_BUTTON:
+		b = MIDDLE;		break;
+
+	case GLUT_RIGHT_BUTTON:
+		b = RIGHT;		break;
+
+	case SCROLL_WHEEL_UP:
+		Scale += SCLFACT * SCROLL_WHEEL_CLICK_FACTOR;
+		// keep object from turning inside-out or disappearing:
+		if (Scale < MINSCALE)
+			Scale = MINSCALE;
+		break;
+
+	case SCROLL_WHEEL_DOWN:
+		Scale -= SCLFACT * SCROLL_WHEEL_CLICK_FACTOR;
+		// keep object from turning inside-out or disappearing:
+		if (Scale < MINSCALE)
+			Scale = MINSCALE;
+		break;
+
+	default:
+		b = 0;
+		fprintf(stderr, "Unknown mouse button: %d\n", button);
+	}
+
+	// button down sets the bit, up clears the bit:
+
+	if (state == GLUT_DOWN)
+	{
+		Xmouse = x;
+		Ymouse = y;
+		ActiveButton |= b;		// set the proper bit
+	}
+	else
+	{
+		ActiveButton &= ~b;		// clear the proper bit
+	}
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+
+}
+
+
+// called when the mouse moves while a button is down:
+
+void
+MouseMotion(int x, int y)
+{
+	if (DebugOn != 0)
+		fprintf(stderr, "MouseMotion: %d, %d\n", x, y);
+
+
+	int dx = x - Xmouse;		// change in mouse coords
+	int dy = y - Ymouse;
+
+	if ((ActiveButton & LEFT) != 0)
+	{
+		Xrot += (ANGFACT * dy);
+		Yrot += (ANGFACT * dx);
+	}
+
+
+	if ((ActiveButton & MIDDLE) != 0)
+	{
+		Scale += SCLFACT * (float)(dx - dy);
+
+		// keep object from turning inside-out or disappearing:
+
+		if (Scale < MINSCALE)
+			Scale = MINSCALE;
+	}
+
+	Xmouse = x;			// new current position
+	Ymouse = y;
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+// reset the transformations and the colors:
+// this only sets the global variables --
+// the glut main loop is responsible for redrawing the scene
+
+void
+Reset()
+{
+	ActiveButton = 0;
+	AxesOn = 1;
+	DebugOn = 0;
+	DepthBufferOn = 1;
+	DepthFightingOn = 0;
+	DepthCueOn = 0;
+	Scale = 1.0;
+	ShadowsOn = 0;
+	WhichColor = WHITE;
+	WhichProjection = PERSP;
+	WhichView = SOLARSYSTEM;
+	WhichTexture = TEXTURET;
+	Xrot = Yrot = 0.;
+	Frozen = true;
+	light1On = true;
+	light2On = true;
+	light3On = true;
+}
+
+
+// called when user resizes the window:
+
+void
+Resize(int width, int height)
+{
+	if (DebugOn != 0)
+		fprintf(stderr, "ReSize: %d, %d\n", width, height);
+
+	// don't really need to do anything since window size is
+	// checked each time in Display( ):
+
+	glutSetWindow(MainWindow);
+	glutPostRedisplay();
+}
+
+
+// handle a change to the window's visibility:
+
+void
+Visibility(int state)
+{
+	if (DebugOn != 0)
+		fprintf(stderr, "Visibility: %d\n", state);
+
+	if (state == GLUT_VISIBLE)
+	{
+		glutSetWindow(MainWindow);
+		glutPostRedisplay();
+	}
+	else
+	{
+		// could optimize by keeping track of the fact
+		// that the window is not visible and avoid
+		// animating or redrawing it ...
+	}
+}
+
+
+
+///////////////////////////////////////   HANDY UTILITIES:  //////////////////////////
+
+
+// the stroke characters 'X' 'Y' 'Z' :
+
+static float xx[] = {
+		0.f, 1.f, 0.f, 1.f
+};
+
+static float xy[] = {
+		-.5f, .5f, .5f, -.5f
+};
+
+static int xorder[] = {
+		1, 2, -3, 4
+};
+
+static float yx[] = {
+		0.f, 0.f, -.5f, .5f
+};
+
+static float yy[] = {
+		0.f, .6f, 1.f, 1.f
+};
+
+static int yorder[] = {
+		1, 2, 3, -2, 4
+};
+
+static float zx[] = {
+		1.f, 0.f, 1.f, 0.f, .25f, .75f
+};
+
+static float zy[] = {
+		.5f, .5f, -.5f, -.5f, 0.f, 0.f
+};
+
+static int zorder[] = {
+		1, 2, 3, 4, -5, 6
+};
+
+// fraction of the length to use as height of the characters:
+const float LENFRAC = 0.10f;
+
+// fraction of length to use as start location of the characters:
+const float BASEFRAC = 1.10f;
+
+//	Draw a set of 3D axes:
+//	(length is the axis length in world coordinates)
+
+void
+Axes(float length)
+{
+	glBegin(GL_LINE_STRIP);
+	glVertex3f(length, 0., 0.);
+	glVertex3f(0., 0., 0.);
+	glVertex3f(0., length, 0.);
+	glEnd();
+	glBegin(GL_LINE_STRIP);
+	glVertex3f(0., 0., 0.);
+	glVertex3f(0., 0., length);
+	glEnd();
+
+	float fact = LENFRAC * length;
+	float base = BASEFRAC * length;
+
+	glBegin(GL_LINE_STRIP);
+	for (int i = 0; i < 4; i++)
+	{
+		int j = xorder[i];
+		if (j < 0)
+		{
+
+			glEnd();
+			glBegin(GL_LINE_STRIP);
+			j = -j;
+		}
+		j--;
+		glVertex3f(base + fact * xx[j], fact * xy[j], 0.0);
+	}
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+	for (int i = 0; i < 5; i++)
+	{
+		int j = yorder[i];
+		if (j < 0)
+		{
+
+			glEnd();
+			glBegin(GL_LINE_STRIP);
+			j = -j;
+		}
+		j--;
+		glVertex3f(fact * yx[j], base + fact * yy[j], 0.0);
+	}
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+	for (int i = 0; i < 6; i++)
+	{
+		int j = zorder[i];
+		if (j < 0)
+		{
+
+			glEnd();
+			glBegin(GL_LINE_STRIP);
+			j = -j;
+		}
+		j--;
+		glVertex3f(0.0, fact * zy[j], base + fact * zx[j]);
+	}
+	glEnd();
+
+}
+
+struct bmfh
+{
+	short bfType;
+	int bfSize;
+	short bfReserved1;
+	short bfReserved2;
+	int bfOffBits;
+} FileHeader;
+
+struct bmih
+{
+	int biSize;
+	int biWidth;
+	int biHeight;
+	short biPlanes;
+	short biBitCount;
+	int biCompression;
+	int biSizeImage;
+	int biXPelsPerMeter;
+	int biYPelsPerMeter;
+	int biClrUsed;
+	int biClrImportant;
+} InfoHeader;
+
+const int birgb = { 0 };
+
+// read a BMP file into a Texture:
+
+unsigned char*
+BmpToTexture(char* filename, int* width, int* height)
+{
+	FILE* fp = fopen(filename, "rb");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Cannot open Bmp file '%s'\n", filename);
+		return NULL;
+	}
+
+	FileHeader.bfType = ReadShort(fp);
+
+
+	// if bfType is not 0x4d42, the file is not a bmp:
+
+	if (FileHeader.bfType != 0x4d42)
+	{
+		fprintf(stderr, "File '%s' is the wrong type of file: 0x%0x\n", filename, FileHeader.bfType);
+		fclose(fp);
+		return NULL;
+	}
+
+	FileHeader.bfSize = ReadInt(fp);
+	FileHeader.bfReserved1 = ReadShort(fp);
+	FileHeader.bfReserved2 = ReadShort(fp);
+	FileHeader.bfOffBits = ReadInt(fp);
+
+	InfoHeader.biSize = ReadInt(fp);
+	InfoHeader.biWidth = ReadInt(fp);
+	InfoHeader.biHeight = ReadInt(fp);
+
+	int nums = InfoHeader.biWidth;
+	int numt = InfoHeader.biHeight;
+
+	InfoHeader.biPlanes = ReadShort(fp);
+	InfoHeader.biBitCount = ReadShort(fp);
+	InfoHeader.biCompression = ReadInt(fp);
+	InfoHeader.biSizeImage = ReadInt(fp);
+	InfoHeader.biXPelsPerMeter = ReadInt(fp);
+	InfoHeader.biYPelsPerMeter = ReadInt(fp);
+	InfoHeader.biClrUsed = ReadInt(fp);
+	InfoHeader.biClrImportant = ReadInt(fp);
+
+	fprintf(stderr, "Image size in file '%s' is: %d x %d\n", filename, nums, numt);
+
+	unsigned char* texture = new unsigned char[3 * nums * numt];
+	if (texture == NULL)
+	{
+		fprintf(stderr, "Cannot allocate the texture array!\b");
+		return NULL;
+	}
+
+	// extra padding bytes:
+
+	int numextra = 4 * (((3 * InfoHeader.biWidth) + 3) / 4) - 3 * InfoHeader.biWidth;
+
+	// we do not support compression:
+
+	if (InfoHeader.biCompression != birgb)
+	{
+		fprintf(stderr, "Image file '%s' has the wrong type of image compression: %d\n", filename, InfoHeader.biCompression);
+		fclose(fp);
+		return NULL;
+	}
+
+	rewind(fp);
+	fseek(fp, 14 + 40, SEEK_SET);
+
+	if (InfoHeader.biBitCount == 24)
+	{
+		unsigned char* tp = texture;
+		for (int t = 0; t < numt; t++)
+		{
+			for (int s = 0; s < nums; s++, tp += 3)
+			{
+				*(tp + 2) = fgetc(fp);		// b
+				*(tp + 1) = fgetc(fp);		// g
+				*(tp + 0) = fgetc(fp);		// r
+			}
+
+			for (int e = 0; e < numextra; e++)
+			{
+				fgetc(fp);
+			}
+		}
+	}
+
+	fclose(fp);
+
+	*width = nums;
+	*height = numt;
+	return texture;
+}
+
+int
+ReadInt(FILE* fp)
+{
+	unsigned char b3, b2, b1, b0;
+	b0 = fgetc(fp);
+	b1 = fgetc(fp);
+	b2 = fgetc(fp);
+	b3 = fgetc(fp);
+	return (b3 << 24) | (b2 << 16) | (b1 << 8) | b0;
+}
+
+short
+ReadShort(FILE* fp)
+{
+	unsigned char b1, b0;
+	b0 = fgetc(fp);
+	b1 = fgetc(fp);
+	return (b1 << 8) | b0;
+}
+
+
+// function to convert HSV to RGB
+// 0.  <=  s, v, r, g, b  <=  1.
+// 0.  <= h  <=  360.
+// when this returns, call:
+//		glColor3fv( rgb );
+
+void
+HsvRgb(float hsv[3], float rgb[3])
+{
+	// guarantee valid input:
+
+	float h = hsv[0] / 60.f;
+	while (h >= 6.)	h -= 6.;
+	while (h < 0.) 	h += 6.;
+
+	float s = hsv[1];
+	if (s < 0.)
+		s = 0.;
+	if (s > 1.)
+		s = 1.;
+
+	float v = hsv[2];
+	if (v < 0.)
+		v = 0.;
+	if (v > 1.)
+		v = 1.;
+
+	// if sat==0, then is a gray:
+
+	if (s == 0.0)
+	{
+		rgb[0] = rgb[1] = rgb[2] = v;
+		return;
+	}
+
+	// get an rgb from the hue itself:
+
+	float i = (float)floor(h);
+	float f = h - i;
+	float p = v * (1.f - s);
+	float q = v * (1.f - s * f);
+	float t = v * (1.f - (s * (1.f - f)));
+
+	float r = 0., g = 0., b = 0.;			// red, green, blue
+	switch ((int)i)
+	{
+	case 0:
+		r = v;	g = t;	b = p;
+		break;
+
+	case 1:
+		r = q;	g = v;	b = p;
+		break;
+
+	case 2:
+		r = p;	g = v;	b = t;
+		break;
+
+	case 3:
+		r = p;	g = q;	b = v;
+		break;
+
+	case 4:
+		r = t;	g = p;	b = v;
+		break;
+
+	case 5:
+		r = v;	g = p;	b = q;
+		break;
+	}
+
+
+	rgb[0] = r;
+	rgb[1] = g;
+	rgb[2] = b;
+}
+
+void
+Cross(float v1[3], float v2[3], float vout[3])
+{
+	float tmp[3];
+	tmp[0] = v1[1] * v2[2] - v2[1] * v1[2];
+	tmp[1] = v2[0] * v1[2] - v1[0] * v2[2];
+	tmp[2] = v1[0] * v2[1] - v2[0] * v1[1];
+	vout[0] = tmp[0];
+	vout[1] = tmp[1];
+	vout[2] = tmp[2];
+}
+
+float
+Dot(float v1[3], float v2[3])
+{
+	return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+}
+
+float
+Unit(float vin[3], float vout[3])
+{
+	float dist = vin[0] * vin[0] + vin[1] * vin[1] + vin[2] * vin[2];
+	if (dist > 0.0)
+	{
+		dist = sqrtf(dist);
+		vout[0] = vin[0] / dist;
+		vout[1] = vin[1] / dist;
+		vout[2] = vin[2] / dist;
+	}
+	else
+	{
+		vout[0] = vin[0];
+		vout[1] = vin[1];
+		vout[2] = vin[2];
+	}
+	return dist;
+}

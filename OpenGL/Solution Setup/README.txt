@@ -1,0 +1,1 @@
+This contains the sample solution which is used by all other projects. To compile replace the 'sample.cpp' code with the corresponding '.cpp' file from the desired project. If any additional .vert or .frag or .bmp files are needed those will be needed in the same folder as the solution.

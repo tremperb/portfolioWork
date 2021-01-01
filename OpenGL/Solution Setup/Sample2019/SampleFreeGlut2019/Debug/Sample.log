@@ -1,0 +1,27 @@
+﻿  sample.cpp
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(841,29): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(848,12): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(849,12): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(862,29): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(871,12): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(872,12): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(906,47): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(911,29): warning C4305: 'argument': truncation from 'double' to 'GLfloat'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(952,64): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(953,67): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(954,72): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(955,71): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(956,75): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(957,68): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(958,74): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(959,71): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(960,76): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(961,71): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(962,87): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(963,90): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(964,71): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(965,71): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(966,73): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\sample.cpp(941,8): warning C4101: 'radius': unreferenced local variable
+sample.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+  Sample.vcxproj -> C:\Users\tremp\Desktop\CS450\Sample2019\SampleFreeGlut2019\.\Debug\Sample.exe
