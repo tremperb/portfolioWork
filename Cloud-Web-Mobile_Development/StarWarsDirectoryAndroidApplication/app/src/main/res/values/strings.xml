@@ -1,0 +1,95 @@
+<resources>
+    <string name="app_name">Star Wars Directory</string>
+    <string name="app_people">People</string>
+    <string name="app_planets">Planets</string>
+    <string name="app_films">Films</string>
+    <string name="app_species">Species</string>
+    <string name="app_vehicles">Vehicles</string>
+    <string name="app_starships">Starships</string>
+
+    <string name="app_lc_people">people</string>
+    <string name="app_lc_planets">planets</string>
+    <string name="app_lc_films">films</string>
+    <string name="app_lc_species">species</string>
+    <string name="app_lc_vehicles">vehicles</string>
+    <string name="app_lc_starships">starships</string>
+
+    <string name="loading_error">Unable to fetch category data.  Please check your internet connection.\n\nError message: %1$s</string>
+
+    <!-- Settings -->
+    <string name="action_settings_title">Settings</string>
+    <string name="pref_volume_key">pref_volume</string>
+    <string name="pref_volume_title">Volume</string>
+    <string name="pref_theme_key">pref_theme</string>
+    <string name="pref_theme_title">Theme</string>
+    <string name="pref_theme_default">jedi</string>
+    <string name="main_category_name">Category Name</string>
+    
+    <string name="pref_play_song">Play Theme</string>
+    <string name="pref_button_play" translatable="false">Play Theme</string>
+
+    <!-- Descriptions -->
+    <string name="header_desc_one">Description</string>
+    <string name="app_residents">Residents</string>
+    <string name="app_characters">Characters</string>
+    <string name="app_pilots">Pilots</string>
+    <!-- Person -->
+    <string name="title_person_1">Gender:</string>
+    <string name="title_person_2">Height:</string>
+    <string name="title_person_3">Mass:</string>
+    <string name="title_person_4">Hair Color:</string>
+    <string name="title_person_5">Skin Color:</string>
+    <string name="title_person_6">Eye Color:</string>
+    <string name="title_person_7">Birth Year:</string>
+    <string name="title_person_8">Homeworld:</string>
+
+    <!-- Planets -->
+    <string name="title_planet_1">Rotation Period:</string>
+    <string name="title_planet_2">Orbital Period:</string>
+    <string name="title_planet_3">Diameter:</string>
+    <string name="title_planet_4">Climate:</string>
+    <string name="title_planet_5">Gravity:</string>
+    <string name="title_planet_6">Terrain:</string>
+    <string name="title_planet_7">Surface Water:</string>
+    <string name="title_planet_8">Population:</string>
+
+    <!-- Films -->
+    <string name="title_film_1">Director:</string>
+    <string name="title_film_2">Producer:</string>
+    <string name="title_film_3">Release Date:</string>
+
+    <!-- Species -->
+    <string name="title_species_1">Classification:</string>
+    <string name="title_species_2">Designation:</string>
+    <string name="title_species_3">Average Height:</string>
+    <string name="title_species_4">Skin Colors:</string>
+    <string name="title_species_5">Hair Colors:</string>
+    <string name="title_species_6">Eye Colors:</string>
+    <string name="title_species_7">Average Lifespan:</string>
+    <string name="title_species_8">Language:</string>
+
+    <!-- Vehicles -->
+    <string name="title_vehicle_1">Model:</string>
+    <string name="title_vehicle_2">Manufacturer:</string>
+    <string name="title_vehicle_3">Cost:</string>
+    <string name="title_vehicle_4">Length:</string>
+    <string name="title_vehicle_5">Max Speed:</string>
+    <string name="title_vehicle_6">Crew:</string>
+    <string name="title_vehicle_7">Passengers:</string>
+    <string name="title_vehicle_8">Cargo Capacity:</string>
+    <string name="title_vehicle_9">Consumables:</string>
+    <string name="title_vehicle_10">Vehicle Class:</string>
+
+
+    <!-- Starships -->
+    <string name="title_starship_1">Model:</string>
+    <string name="title_starship_2">Manufacturer:</string>
+    <string name="title_starship_3">Starship Class:</string>
+    <string name="title_starship_4">Cost:</string>
+    <string name="title_starship_5">Length:</string>
+    <string name="title_starship_6">Crew:</string>
+    <string name="title_starship_7">Passengers:</string>
+    <string name="title_starship_8">Cargo Capacity:</string>
+
+    <string name="activity_next_btn">NEXT PAGE</string>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <SwitchPreference
+        android:title="@string/pref_play_song"
+        android:key="@string/pref_button_play"
+        android:defaultValue="true"/>
+
+    <SeekBarPreference
+        android:key="@string/pref_volume_key"
+        android:title="@string/pref_volume_title"
+        android:max="@integer/pref_volume_max"
+        android:defaultValue="@integer/pref_volume_default"
+        app:min="@integer/pref_volume_min"/>
+
+    <ListPreference
+        android:key="@string/pref_theme_key"
+        android:title="@string/pref_theme_title"
+        android:summary="%s"
+        android:dialogTitle="@string/pref_theme_title"
+        android:entries="@array/pref_theme_entries"
+        android:entryValues="@array/pref_theme_values"
+        android:defaultValue="@string/pref_theme_default"/>
+
+</PreferenceScreen>

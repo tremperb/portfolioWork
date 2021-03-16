@@ -1,0 +1,17 @@
+##OpenGL GLIB
+
+Perspective 70
+LookAt -1 4 3  0 2 0  0 1 0
+
+Vertex		cat.vert
+Fragment	cat.frag
+Program		CatHeight					\
+			uNoiseAmp <0. 0. 1.>						\
+			uNoiseFreq <0. 1. 10.>      		\
+			uKa <0. 0.45 1.0>               \
+			uKd <0. 0.45 1.0>               \
+			uLightX <-20. 0. 20.>           \
+			uLightY <-20. 0. 20.>           \
+			uLightZ <-20. -5. 20.>
+
+Obj catH.obj

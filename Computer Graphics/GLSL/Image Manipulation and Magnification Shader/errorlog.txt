@@ -1,0 +1,16 @@
+
+Fragment shader failed to compile with the following errors:
+ERROR: 0:40: error(#144) Variable expected: magST
+ERROR: 0:41: error(#143) Undeclared identifier: magST
+ERROR: 0:41: error(#216) Vector field selection out of range "t"
+ERROR: 0:45: error(#216) Vector field selection out of range "t"
+ERROR: 0:49: error(#216) Vector field selection out of range "t"
+ERROR: 0:54: error(#216) Vector field selection out of range "t"
+ERROR: 0:66: error(#202) No matching overloaded function found: texture2D
+ERROR: 0:66: error(#216) Vector field selection out of range "rgb"
+ERROR: 0:84: error(#202) No matching overloaded function found: texture
+ERROR: 0:84: error(#216) Vector field selection out of range "rgb"
+ERROR: 0:86: error(#132) Syntax error: "else" parse error
+ERROR: error(#273) 11 compilation errors.  No code generated
+
+

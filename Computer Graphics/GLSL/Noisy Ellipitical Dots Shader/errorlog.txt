@@ -1,0 +1,7 @@
+
+0(85) : error C1060: incompatible types in initialization
+0(85) : error C1056: invalid initialization
+0(87) : error C7011: implicit cast from "vec4" to "vec3"
+0(88) : error C7011: implicit cast from "vec4" to "vec3"
+0(88) : error C1035: assignment of incompatible types
+

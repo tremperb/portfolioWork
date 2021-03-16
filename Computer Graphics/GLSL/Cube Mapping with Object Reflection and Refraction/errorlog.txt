@@ -1,0 +1,6 @@
+
+Vertex shader failed to compile with the following errors:
+ERROR: 0:13: error(#143) Undeclared identifier: vNormal
+ERROR: error(#273) 1 compilation errors.  No code generated
+
+

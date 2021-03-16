@@ -1,0 +1,4 @@
+
+0(58) : error C1503: undefined variable "ORANGE"
+0(58) : error C1503: undefined variable "WHITE"
+

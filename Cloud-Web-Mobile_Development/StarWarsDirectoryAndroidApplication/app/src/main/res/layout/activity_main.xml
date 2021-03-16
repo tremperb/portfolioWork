@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingTop="50dp"
+        android:paddingLeft="65dp"
+        android:paddingRight="65dp"
+        android:paddingBottom="5dp">
+
+        <Button
+            android:id="@+id/button_people"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp"
+            android:text="@string/app_people"/>
+
+        <Button
+            android:id="@+id/button_planets"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp"
+            android:text="@string/app_planets"/>
+
+        <Button
+            android:id="@+id/button_films"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp"
+            android:text="@string/app_films"/>
+
+        <Button
+            android:id="@+id/button_species"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp"
+            android:text="@string/app_species"/>
+
+        <Button
+            android:id="@+id/button_vehicles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp"
+            android:text="@string/app_vehicles"/>
+
+        <Button
+            android:id="@+id/button_starships"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceHeadline5"
+            android:padding="10dp"
+            android:layout_marginBottom="15dp"
+            android:text="@string/app_starships"/>
+
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

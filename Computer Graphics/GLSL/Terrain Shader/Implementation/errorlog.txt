@@ -1,0 +1,7 @@
+
+Vertex shader failed to compile with the following errors:
+ERROR: 0:61: error(#143) Undeclared identifier: Noise3D
+ERROR: 0:61: error(#202) No matching overloaded function found: Noise3D
+ERROR: error(#273) 2 compilation errors.  No code generated
+
+

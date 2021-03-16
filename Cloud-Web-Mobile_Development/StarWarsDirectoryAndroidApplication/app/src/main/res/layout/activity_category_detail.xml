@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical"
+    tools:context=".CategoryDetailActivity">
+
+    <TextView
+        android:id="@+id/tv_detail_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="?attr/colorOnSecondary"
+        android:textAppearance="?attr/textAppearanceHeadline2"
+        android:textStyle="bold"
+        android:textSize="25sp"
+        android:layout_marginBottom="15dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <!-- Results -->
+            <LinearLayout
+                android:id="@+id/detail_results"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!--Section 1-->
+                <LinearLayout
+                    android:id="@+id/layout_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorPrimary"
+                        android:textAppearance="?attr/textAppearanceHeadline3"
+                        android:textStyle="bold"
+                        android:textSize="20sp"
+                        android:text="@string/header_desc_one"
+                        android:layout_marginBottom="5dp"/>
+
+                </LinearLayout>
+
+                <!--Section 2-->
+                <LinearLayout
+                    android:id="@+id/detail_section_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/section_2_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorPrimary"
+                        android:textAppearance="?attr/textAppearanceHeadline3"
+                        android:textStyle="bold"
+                        android:textSize="20sp"
+                        android:layout_marginBottom="5dp"/>
+
+                </LinearLayout>
+
+                <!--Section 3-->
+                <LinearLayout
+                    android:id="@+id/detail_section_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/section_3_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorPrimary"
+                        android:textAppearance="?attr/textAppearanceHeadline3"
+                        android:textStyle="bold"
+                        android:textSize="20sp"
+                        android:layout_marginBottom="5dp"/>
+
+                </LinearLayout>
+
+                <!--Section 4-->
+                <LinearLayout
+                    android:id="@+id/detail_section_4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/section_4_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorPrimary"
+                        android:textAppearance="?attr/textAppearanceHeadline3"
+                        android:textStyle="bold"
+                        android:textSize="20sp"
+                        android:layout_marginBottom="5dp"/>
+
+                </LinearLayout>
+
+                <!--Section 5-->
+                <LinearLayout
+                    android:id="@+id/detail_section_5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp">
+
+                    <TextView
+                        android:id="@+id/section_5_header"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorPrimary"
+                        android:textAppearance="?attr/textAppearanceHeadline3"
+                        android:textStyle="bold"
+                        android:textSize="20sp"
+                        android:layout_marginBottom="5dp"/>
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Error -->
+            <TextView
+                android:id="@+id/tv_error_detail_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textColor="?attr/colorError"
+                android:visibility="invisible"/>
+
+            <!-- Progress -->
+            <ProgressBar
+                android:id="@+id/pb_loading_detail_indicator"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_marginTop="32dp"
+                android:layout_gravity="top|center_horizontal"
+                android:visibility="invisible"/>
+        </FrameLayout>
+
+    </ScrollView>
+
+</LinearLayout>

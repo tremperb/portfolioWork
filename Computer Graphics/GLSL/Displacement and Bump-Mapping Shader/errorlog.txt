@@ -1,0 +1,8 @@
+
+0(40) : error C1503: undefined variable "vNf"
+0(41) : error C1503: undefined variable "vNf"
+0(43) : error C1503: undefined variable "vLf"
+0(44) : error C1503: undefined variable "vLf"
+0(46) : error C1503: undefined variable "vEf"
+0(47) : error C1503: undefined variable "vEf"
+
